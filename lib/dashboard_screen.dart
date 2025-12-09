@@ -1,42 +1,30 @@
-// PASTIKAN KODE LENGKAP INI ADA DI FILE lib/dashboard_screen.dart
 import 'package:flutter/material.dart';
+// Import component baru
+import 'components/barber_card.dart';
+// Import Barber model dari file BookingScreen (asumsi Barber class ada di sana)
+import 'booking_screen.dart';
 
-// --- DATA MODEL (Dibiarkan sama) ---
-class Barber {
-  final String name;
-  final String specialization;
-  final String rating;
-  final String yearsExperience;
-  final bool isAvailable;
-  final String imagePath;
+// --- DATA MODEL (DIJAGA TETAP SAMA) ---
+// Note: Barber Class diasumsikan berada di booking_screen.dart
+// Jika Anda ingin Barber Class berada di sini, hapus import booking_screen.dart di atas
 
-  Barber(
-    this.name,
-    this.specialization,
-    this.rating,
-    this.yearsExperience,
-    this.isAvailable,
-    this.imagePath,
-  );
-}
-
-// List data tukang cukur (Barber) fiktif (Dibiarkan sama)
+// List data tukang cukur (URL sudah diperbaiki ke Picsum Photos)
 final List<Barber> barbers = [
   Barber(
-    'Agus Wijaya',
+    'Rian Pratama',
     'Classic & Modern Cut',
     '4.9',
-    '10 tahun',
+    '7k reviews',
     true,
-    'https://i.pravatar.cc/150?img=1',
+    'https://picsum.photos/id/101/200/200',
   ),
   Barber(
-    'Rian Pratama',
+    'Agus Wijaya',
     'Fade Expert',
     '4.8',
-    '7 tahun',
+    '10 tahun',
     true,
-    'https://i.pravatar.cc/150?img=2',
+    'https://picsum.photos/id/102/200/200',
   ),
   Barber(
     'Budi Santoso',
@@ -44,19 +32,18 @@ final List<Barber> barbers = [
     '4.9',
     '15 tahun',
     false,
-    'https://i.pravatar.cc/150?img=3',
+    'https://picsum.photos/id/103/200/200',
   ),
   Barber(
-    'Dedi Kurniawan',
+    'Agus Wijosa',
     'Pompadour Specialist',
     '4.7',
     '6 tahun',
     true,
-    'https://i.pravatar.cc/150?img=4',
+    'https://picsum.photos/id/104/200/200',
   ),
 ];
 
-// --- WIDGET UTAMA DASHBOARD ---
 class DashboardScreen extends StatelessWidget {
   const DashboardScreen({super.key});
 
@@ -68,7 +55,7 @@ class DashboardScreen extends StatelessWidget {
     return ListView(
       padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
       children: <Widget>[
-        // Bagian Statistik
+        // Bagian Statistik (Upcoming Bookings, Total Visits, Active Promos)
         _buildStatsSection(mediumBlue, accentYellow),
         const SizedBox(height: 20),
 
@@ -82,11 +69,12 @@ class DashboardScreen extends StatelessWidget {
         ),
         const SizedBox(height: 10),
 
+        // Bagian Promo (Horizontal)
         _buildPromoSection(mediumBlue, accentYellow),
         const SizedBox(height: 30),
 
         const Text(
-          'Barber Professional Kami',
+          'Barber Profesional Kami',
           style: TextStyle(
             color: Colors.white,
             fontSize: 20,
@@ -95,16 +83,16 @@ class DashboardScreen extends StatelessWidget {
         ),
         const SizedBox(height: 10),
 
-        // Perluas daftar barber di sini
-        ...barbers
-            .map((barber) => _buildBarberCard(barber, mediumBlue))
-            .toList(),
+        // Daftar Barber (Menggunakan Component BarberCard)
+        ...barbers.map(
+          (barber) => BarberCard(barber: barber, isBookingScreen: false),
+        ),
         const SizedBox(height: 20),
       ],
     );
   }
 
-  // --- WIDGET METHOD: STATS SECTION (Dibiarkan sama) ---
+  // --- WIDGET METHOD: STATS SECTION ---
   Widget _buildStatsSection(Color bgColor, Color accentColor) {
     return Column(
       children: [
@@ -181,7 +169,7 @@ class DashboardScreen extends StatelessWidget {
     );
   }
 
-  // --- WIDGET METHOD: PROMO SECTION ---
+  // --- WIDGET METHOD: PROMO SECTION (URL DIPERBAIKI) ---
   Widget _buildPromoSection(Color cardColor, Color accentColor) {
     return SizedBox(
       height: 300,
@@ -191,8 +179,8 @@ class DashboardScreen extends StatelessWidget {
           _buildPromoCard(
             cardColor: cardColor,
             accentColor: accentYellow,
-            imagePath:
-                'https://images.unsplash.com/photo-1549419163-f29e1c450c33',
+            // URL Promo 1 DIPERBAIKI
+            imagePath: 'https://picsum.photos/id/201/300/200',
             title: 'Diskon 30% Member Baru',
             description: 'Khusus untuk member yang booking pertama kali.',
             validUntil: 'Valid hingga 23 Des',
@@ -202,8 +190,8 @@ class DashboardScreen extends StatelessWidget {
           _buildPromoCard(
             cardColor: cardColor,
             accentColor: accentYellow,
-            imagePath:
-                'https://images.unsplash.com/photo-1621607567086-a7dc5e2b8600',
+            // URL Promo 2 DIPERBAIKI
+            imagePath: 'https://picsum.photos/id/202/300/200',
             title: 'Promo Weekend Special',
             description: 'Potongan harga untuk service di akhir pekan.',
             validUntil: 'Valid hingga 20 Des',
@@ -303,9 +291,6 @@ class DashboardScreen extends StatelessWidget {
                     style: ElevatedButton.styleFrom(
                       backgroundColor: accentYellow,
                     ),
-                    // **********************************
-                    // * PERUBAHAN: Ganti 'Detail' menjadi 'Book Now'
-                    // **********************************
                     child: const Text(
                       'Book Now',
                       style: TextStyle(color: Colors.black),
@@ -316,87 +301,6 @@ class DashboardScreen extends StatelessWidget {
             ),
           ),
         ],
-      ),
-    );
-  }
-
-  // --- WIDGET METHOD: BARBER CARD ---
-  Widget _buildBarberCard(Barber barber, Color cardColor) {
-    // Tombol di desain terakhir Anda adalah 'Book Now' (warna hijau), bukan status.
-    final Color statusColor = barber.isAvailable ? Colors.green : Colors.red;
-
-    return Card(
-      color: cardColor,
-      margin: const EdgeInsets.only(bottom: 15),
-      child: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            CircleAvatar(
-              radius: 35,
-              backgroundImage: NetworkImage(barber.imagePath),
-            ),
-            const SizedBox(width: 15),
-            Expanded(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    barber.name,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    barber.specialization,
-                    style: const TextStyle(color: Colors.white70, fontSize: 14),
-                  ),
-                  const SizedBox(height: 8),
-
-                  Row(
-                    children: [
-                      Icon(Icons.star, color: accentYellow, size: 16),
-                      const SizedBox(width: 5),
-                      Text(
-                        '${barber.rating} (${barber.yearsExperience})',
-                        style: const TextStyle(
-                          color: Colors.white70,
-                          fontSize: 14,
-                        ),
-                      ),
-                    ],
-                  ),
-                ],
-              ),
-            ),
-            // Tombol Status Ketersediaan
-            ElevatedButton(
-              onPressed: () {},
-              style: ElevatedButton.styleFrom(
-                backgroundColor:
-                    Colors.green, // Selalu hijau seperti di desain terakhir
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 8,
-                ),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(20),
-                ),
-                minimumSize: const Size(100, 35),
-              ),
-              // **********************************
-              // * PERUBAHAN: Ganti Teks Status menjadi 'Book Now'
-              // **********************************
-              child: const Text(
-                'gunakan',
-                style: TextStyle(color: Colors.white, fontSize: 14),
-              ),
-            ),
-          ],
-        ),
       ),
     );
   }

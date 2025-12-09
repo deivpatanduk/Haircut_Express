@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'dashboard_screen.dart';
-// >>> TAMBAHKAN IMPORT BOOKING SCREEN DI SINI <<<
-import 'booking_screen.dart';
+import 'booking_screen.dart'; // Digunakan untuk tab Booking
 
 class MainAppScreen extends StatefulWidget {
   const MainAppScreen({super.key});
@@ -13,17 +12,16 @@ class MainAppScreen extends StatefulWidget {
 class _MainAppScreenState extends State<MainAppScreen> {
   int _selectedIndex = 0;
 
-  // Daftar widget untuk Bottom Navigation Bar (Disesuaikan)
+  // Daftar widget untuk Bottom Navigation Bar (3 item: Home, Booking, History)
   static final List<Widget> _widgetOptions = <Widget>[
-    const DashboardScreen(),
-    // GANTI: Widget Index 1 (Booking) dengan BookingScreen()
-    const BookingScreen(),
+    const DashboardScreen(), // Index 0: Home
+    const BookingScreen(), // Index 1: Booking
     const Center(
       child: Text(
         "History/Appointments",
         style: TextStyle(color: Colors.white, fontSize: 24),
       ),
-    ),
+    ), // Index 2: History
   ];
 
   void _onItemTapped(int index) {
@@ -32,7 +30,6 @@ class _MainAppScreenState extends State<MainAppScreen> {
     });
   }
 
-  // Warna yang konsisten dengan desain
   final Color darkBlue = const Color(0xFF1B263B);
   final Color accentYellow = const Color(0xFFFFA500);
 
@@ -41,26 +38,39 @@ class _MainAppScreenState extends State<MainAppScreen> {
     return Scaffold(
       backgroundColor: darkBlue,
 
-      // A. APP BAR (HEADER) - Dibiarkan sesuai permintaan Anda sebelumnya
+      // A. APP BAR (HEADER) - Dengan Logo Gunting
       appBar: AppBar(
         backgroundColor: darkBlue,
         elevation: 0,
+        // Hapus Leading
         leading: null,
         automaticallyImplyLeading: false,
 
-        title: const Text(
-          'Haircut Express',
-          style: TextStyle(color: Colors.white, fontWeight: FontWeight.bold),
+        // MENGGANTI JUDUL DENGAN LOGO GUNTING DAN TEKS
+        title: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            // Ikon Logo Gunting
+            Icon(Icons.cut_outlined, color: accentYellow, size: 28),
+            const SizedBox(width: 8),
+            const Text(
+              'Haircut Express',
+              style: TextStyle(
+                color: Colors.white,
+                fontWeight: FontWeight.bold,
+                fontSize: 20,
+              ),
+            ),
+          ],
         ),
-        centerTitle: true,
+        centerTitle: false,
 
+        // Actions (Ikon Kanan) - Notifikasi dan Profil
         actions: [
-          // 1. Ikon Notifikasi
           IconButton(
             icon: Stack(
               children: [
                 Icon(Icons.notifications_none, color: accentYellow),
-                // Indikator notifikasi 3
                 Positioned(
                   right: 0,
                   child: Container(
@@ -84,7 +94,6 @@ class _MainAppScreenState extends State<MainAppScreen> {
             ),
             onPressed: () {},
           ),
-          // 2. Ikon Profil/Akun
           IconButton(
             icon: Icon(Icons.person_outline, color: accentYellow),
             onPressed: () {},
@@ -96,22 +105,19 @@ class _MainAppScreenState extends State<MainAppScreen> {
       // B. BODY (Konten Halaman)
       body: _widgetOptions.elementAt(_selectedIndex),
 
-      // C. BOTTOM NAVIGATION BAR - Dibiarkan sesuai permintaan Anda sebelumnya
+      // C. BOTTOM NAVIGATION BAR
       bottomNavigationBar: BottomNavigationBar(
         items: <BottomNavigationBarItem>[
-          // Item 1: Home
           BottomNavigationBarItem(
             icon: const Icon(Icons.home_outlined),
             activeIcon: Icon(Icons.home, color: accentYellow),
             label: 'Home',
           ),
-          // Item 2: Calendar/Booking
           BottomNavigationBarItem(
             icon: const Icon(Icons.calendar_month_outlined),
             activeIcon: Icon(Icons.calendar_month, color: accentYellow),
             label: 'Booking',
           ),
-          // Item 3: History/Appointments
           BottomNavigationBarItem(
             icon: const Icon(Icons.history),
             activeIcon: Icon(Icons.history, color: accentYellow),
