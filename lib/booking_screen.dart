@@ -1,10 +1,7 @@
 import 'package:flutter/material.dart';
-// Import components baru
 import 'components/booking_stepper.dart';
 import 'components/barber_card.dart';
-// >>> Hapus import 'schedule_screen.dart' yang tidak terpakai <<<
 
-// --- DATA MODEL (Ditempatkan di sini atau di file model terpisah) ---
 class Barber {
   final String name;
   final String specialization;
@@ -23,7 +20,6 @@ class Barber {
   );
 }
 
-// List data tukang cukur (URL Gambar sudah diperbaiki ke Picsum Photos)
 final List<Barber> barbers = [
   Barber(
     'Agus Wijaya',
@@ -59,7 +55,6 @@ final List<Barber> barbers = [
   ),
 ];
 
-// --- WIDGET UTAMA BOOKING SCREEN ---
 class BookingScreen extends StatelessWidget {
   const BookingScreen({super.key});
 
@@ -76,17 +71,14 @@ class BookingScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            // STEPPER/PROSES LANGKAH (Menggunakan Component BookingStepper)
             Padding(
               padding: const EdgeInsets.symmetric(
                 vertical: 20.0,
                 horizontal: 16.0,
               ),
-              // Langkah 1 aktif
               child: BookingStepper(currentStep: 1),
             ),
 
-            // JUDUL UTAMA
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
               child: Text(
@@ -99,7 +91,6 @@ class BookingScreen extends StatelessWidget {
               ),
             ),
 
-            // SUBTITLE
             const Padding(
               padding: EdgeInsets.only(left: 16.0, bottom: 16.0),
               child: Text(
@@ -108,13 +99,11 @@ class BookingScreen extends StatelessWidget {
               ),
             ),
 
-            // DAFTAR BARBER (Menggunakan Component BarberCard)
             ListView.builder(
               physics: const NeverScrollableScrollPhysics(),
               shrinkWrap: true,
               itemCount: barbers.length,
               itemBuilder: (context, index) {
-                // Gunakan BarberCard, set isBookingScreen=true untuk tampilan Centered dan Navigasi
                 return BarberCard(
                   barber: barbers[index],
                   isBookingScreen: true,

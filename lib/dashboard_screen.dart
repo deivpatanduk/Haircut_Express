@@ -16,7 +16,7 @@ final List<Barber> barbers = [
     '4.9',
     '7k reviews',
     true,
-    'https://picsum.photos/id/101/200/200',
+    'https://i.pinimg.com/originals/f8/19/e4/f819e4d4f5b6a266a71f8a5248003e39.jpg',
   ),
   Barber(
     'Agus Wijaya',

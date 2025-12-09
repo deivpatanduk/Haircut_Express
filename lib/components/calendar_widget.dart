@@ -1,22 +1,88 @@
 import 'package:flutter/material.dart';
 
+typedef DateSelectedCallback = void Function(String date);
+typedef TimeSelectedCallback = void Function(String time);
+
 class CalendarWidget extends StatelessWidget {
-  const CalendarWidget({super.key});
+  final String? selectedDate;
+  final String? selectedTimeSlot;
+
+  final DateSelectedCallback onDateSelected;
+  final TimeSelectedCallback onTimeSelected;
+
+  CalendarWidget({
+    // <<< HAPUS 'const' DI SINI
+    super.key,
+    required this.selectedDate,
+    required this.selectedTimeSlot,
+    required this.onDateSelected,
+    required this.onTimeSelected,
+  });
 
   final Color darkBlue = const Color(0xFF1B263B);
   final Color mediumBlue = const Color(0xFF233044);
   final Color accentYellow = const Color(0xFFFFA500);
+
+  final List<String> dates = [
+    '30',
+    '1',
+    '2',
+    '3',
+    '4',
+    '5',
+    '6',
+    '7',
+    '8',
+    '9',
+    '10',
+    '11',
+    '12',
+    '13',
+    '14',
+    '15',
+    '16',
+    '17',
+    '18',
+    '19',
+    '20',
+    '21',
+    '22',
+    '23',
+    '24',
+    '25',
+    '26',
+    '27',
+    '28',
+    '29',
+    '30',
+    '31',
+    '1',
+    '2',
+    '3',
+  ];
+  final List<String> timeSlots = [
+    '09:00',
+    '10:00',
+    '11:00',
+    '12:00',
+    '13:00',
+    '14:00',
+    '15:00',
+    '16:00',
+    '17:00',
+    '18:00',
+    '19:00',
+    '20:00',
+  ];
 
   @override
   Widget build(BuildContext context) {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        // Kalender Picker
         _buildCalendarPicker(context),
         const SizedBox(height: 20),
 
-        // JUDUL PILIH WAKTU
         const Padding(
           padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 10.0),
           child: Text(
@@ -29,15 +95,12 @@ class CalendarWidget extends StatelessWidget {
           ),
         ),
 
-        // GRID SLOT WAKTU
         _buildTimeSlotGrid(),
       ],
     );
   }
 
-  // --- WIDGET METHOD: KALENDER PICKER ---
   Widget _buildCalendarPicker(BuildContext context) {
-    // Konten Kalender Statis
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16.0),
       padding: const EdgeInsets.all(16.0),
@@ -47,7 +110,6 @@ class CalendarWidget extends StatelessWidget {
       ),
       child: Column(
         children: [
-          // Header Bulan
           Row(
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
@@ -69,7 +131,6 @@ class CalendarWidget extends StatelessWidget {
           ),
           const SizedBox(height: 15),
 
-          // Grid Hari
           _buildDayGrid(context),
         ],
       ),
@@ -77,50 +138,10 @@ class CalendarWidget extends StatelessWidget {
   }
 
   Widget _buildDayGrid(BuildContext context) {
-    // Array Hari (Su, Mo, Tu, We, Th, Fr, Sa)
     final List<String> daysOfWeek = ['Su', 'Mo', 'Tu', 'We', 'Th', 'Fr', 'Sa'];
-    // Data Tanggal Fiktif
-    final List<String> dates = [
-      '30',
-      '1',
-      '2',
-      '3',
-      '4',
-      '5',
-      '6',
-      '7',
-      '8',
-      '9',
-      '10',
-      '11',
-      '12',
-      '13',
-      '14',
-      '15',
-      '16',
-      '17',
-      '18',
-      '19',
-      '20',
-      '21',
-      '22',
-      '23',
-      '24',
-      '25',
-      '26',
-      '27',
-      '28',
-      '29',
-      '30',
-      '31',
-      '1',
-      '2',
-      '3',
-    ];
 
     return Column(
       children: [
-        // Nama Hari (Su, Mo, Tu...)
         Row(
           mainAxisAlignment: MainAxisAlignment.spaceAround,
           children: daysOfWeek
@@ -140,7 +161,6 @@ class CalendarWidget extends StatelessWidget {
         ),
         const SizedBox(height: 10),
 
-        // Angka Tanggal
         GridView.builder(
           physics: const NeverScrollableScrollPhysics(),
           shrinkWrap: true,
@@ -151,29 +171,33 @@ class CalendarWidget extends StatelessWidget {
           ),
           itemBuilder: (context, index) {
             String date = dates[index];
-            bool isSelected = date == '5';
             bool isCurrentMonth = index >= 1 && index <= 32;
+            bool isSelected = selectedDate == date;
 
             return Center(
-              child: Container(
-                width: 35,
-                height: 35,
-                decoration: BoxDecoration(
-                  color: isSelected ? accentYellow : Colors.transparent,
-                  borderRadius: BorderRadius.circular(5),
-                ),
-                child: Center(
-                  child: Text(
-                    date,
-                    style: TextStyle(
-                      color: isSelected
-                          ? darkBlue
-                          : isCurrentMonth
-                          ? Colors.white
-                          : Colors.white54,
-                      fontWeight: isSelected
-                          ? FontWeight.bold
-                          : FontWeight.normal,
+              child: InkWell(
+                onTap: isCurrentMonth ? () => onDateSelected(date) : null,
+                child: Container(
+                  width: 35,
+                  height: 35,
+                  decoration: BoxDecoration(
+                    color: isSelected ? accentYellow : Colors.transparent,
+                    borderRadius: BorderRadius.circular(5),
+                  ),
+                  child: Center(
+                    child: Text(
+                      date,
+                      style: TextStyle(
+                        color: isSelected
+                            ? darkBlue
+                            : isCurrentMonth
+                            ? Colors.white
+                            : Colors.white54,
+                        // PERBAIKAN: Gunakan FontWeight.w400 (normal)
+                        fontWeight: isSelected
+                            ? FontWeight.bold
+                            : FontWeight.w400,
+                      ),
                     ),
                   ),
                 ),
@@ -185,23 +209,7 @@ class CalendarWidget extends StatelessWidget {
     );
   }
 
-  // --- WIDGET METHOD: TIME SLOT GRID ---
   Widget _buildTimeSlotGrid() {
-    final List<String> timeSlots = [
-      '09:00',
-      '10:00',
-      '11:00',
-      '12:00',
-      '13:00',
-      '14:00',
-      '15:00',
-      '16:00',
-      '17:00',
-      '18:00',
-      '19:00',
-      '20:00',
-    ];
-
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16.0),
       child: GridView.builder(
@@ -216,10 +224,10 @@ class CalendarWidget extends StatelessWidget {
         ),
         itemBuilder: (context, index) {
           String time = timeSlots[index];
-          bool isSelected = time == '14:00';
+          bool isSelected = selectedTimeSlot == time;
 
           return InkWell(
-            onTap: () {},
+            onTap: () => onTimeSelected(time),
             child: Container(
               decoration: BoxDecoration(
                 color: isSelected ? accentYellow : mediumBlue,
@@ -233,9 +241,8 @@ class CalendarWidget extends StatelessWidget {
                   time,
                   style: TextStyle(
                     color: isSelected ? darkBlue : Colors.white,
-                    fontWeight: isSelected
-                        ? FontWeight.bold
-                        : FontWeight.normal,
+                    // PERBAIKAN: Gunakan FontWeight.w400 (normal)
+                    fontWeight: isSelected ? FontWeight.bold : FontWeight.w400,
                   ),
                 ),
               ),
