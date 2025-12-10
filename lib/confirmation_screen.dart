@@ -1,8 +1,9 @@
 import 'package:flutter/material.dart';
-import 'booking_screen.dart'; // Untuk model Barber
+import 'booking_screen.dart';
 import 'components/booking_stepper.dart';
+import 'main_app_screen.dart';
 
-class ConfirmationScreen extends StatelessWidget {
+class ConfirmationScreen extends StatefulWidget {
   final Barber selectedBarber;
   final String selectedDate;
   final String selectedTime;
@@ -14,9 +15,23 @@ class ConfirmationScreen extends StatelessWidget {
     required this.selectedTime,
   });
 
+  @override
+  State<ConfirmationScreen> createState() => _ConfirmationScreenState();
+}
+
+class _ConfirmationScreenState extends State<ConfirmationScreen> {
   final Color darkBlue = const Color(0xFF1B263B);
   final Color mediumBlue = const Color(0xFF233044);
   final Color accentYellow = const Color(0xFFFFA500);
+
+  // Total harga statis berdasarkan desain (Rp 75.000)
+  final int _currentTotal = 75000;
+
+  @override
+  void initState() {
+    super.initState();
+    // Semua logika inisialisasi layanan dihapus
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -41,17 +56,17 @@ class ConfirmationScreen extends StatelessWidget {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: <Widget>[
-            // STEPPER (Langkah 3 Aktif)
+            // Stepper
             const Padding(
               padding: EdgeInsets.symmetric(vertical: 20.0, horizontal: 16.0),
               child: BookingStepper(currentStep: 3),
             ),
 
-            // JUDUL UTAMA
+            // Judul
             const Padding(
               padding: EdgeInsets.symmetric(horizontal: 16.0, vertical: 8.0),
               child: Text(
-                'Ringkasan Booking',
+                'Konfirmasi Booking',
                 style: TextStyle(
                   color: Colors.white,
                   fontSize: 22,
@@ -60,19 +75,27 @@ class ConfirmationScreen extends StatelessWidget {
               ),
             ),
 
-            _buildSummaryCard(context),
-            _buildServiceSelection(context),
+            // Sub-judul
+            const Padding(
+              padding: EdgeInsets.only(left: 16.0, bottom: 16.0),
+              child: Text(
+                'Periksa kembali detail booking Anda',
+                style: TextStyle(color: Colors.white70, fontSize: 16),
+              ),
+            ),
+
+            // Detail Booking (Ringkasan Utama)
+            _buildDetailRingkasan(),
 
             const SizedBox(height: 100),
           ],
         ),
       ),
-      bottomSheet: _buildBookNowButton(context),
+      bottomSheet: _buildBookNowButton(context, _currentTotal),
     );
   }
 
-  // --- WIDGET: RINGKASAN BARBER & JADWAL ---
-  Widget _buildSummaryCard(BuildContext context) {
+  Widget _buildDetailRingkasan() {
     return Container(
       margin: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10),
       padding: const EdgeInsets.all(16.0),
@@ -83,64 +106,9 @@ class ConfirmationScreen extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          // Header Ringkasan
-          Row(
-            children: [
-              CircleAvatar(
-                radius: 30,
-                // Menggunakan URL dari objek Barber yang dipilih
-                backgroundImage: NetworkImage(selectedBarber.imagePath),
-              ),
-              const SizedBox(width: 15),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(
-                    selectedBarber.name,
-                    style: const TextStyle(
-                      color: Colors.white,
-                      fontSize: 18,
-                      fontWeight: FontWeight.bold,
-                    ),
-                  ),
-                  Text(
-                    selectedBarber.specialization,
-                    style: const TextStyle(color: Colors.white70, fontSize: 14),
-                  ),
-                ],
-              ),
-            ],
-          ),
-          const Divider(color: Colors.white12, height: 30),
-
-          // Detail Waktu
-          _buildDetailRow(
-            Icons.calendar_today,
-            'Tanggal',
-            selectedDate,
-            accentYellow,
-          ),
-          const SizedBox(height: 10),
-          _buildDetailRow(
-            Icons.access_time,
-            'Waktu',
-            selectedTime,
-            accentYellow,
-          ),
-        ],
-      ),
-    );
-  }
-
-  // --- WIDGET: PILIHAN LAYANAN (Statis) ---
-  Widget _buildServiceSelection(BuildContext context) {
-    return Padding(
-      padding: const EdgeInsets.symmetric(horizontal: 16.0, vertical: 10),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        children: [
+          // Header Layanan
           const Text(
-            'Pilih Layanan Tambahan',
+            'Detail Booking',
             style: TextStyle(
               color: Colors.white,
               fontSize: 18,
@@ -149,53 +117,106 @@ class ConfirmationScreen extends StatelessWidget {
           ),
           const SizedBox(height: 10),
 
-          _buildServiceOption('Haircut (Wajib)', 'Rp 50.000', true),
-          _buildServiceOption('Shave & Trim', 'Rp 25.000', false),
-          _buildServiceOption('Hair Wash & Massage', 'Rp 30.000', false),
+          // Layanan yang Dipilih (Statis: Haircut)
+          _buildServiceRow(
+            Icons.content_cut,
+            'Haircut',
+            'Layanan potong rambut profesional',
+            accentYellow,
+          ),
+          const Divider(color: Colors.white12, height: 30),
+
+          // Detail Barber
+          _buildBarberDetailRow(),
+          const Divider(color: Colors.white12, height: 30),
+
+          // Detail Waktu & Tanggal
+          _buildDetailRow(
+            Icons.calendar_today,
+            'Tanggal',
+            'Rabu, ${widget.selectedDate} Desember 2025',
+            accentYellow,
+          ),
+          const SizedBox(height: 10),
+          _buildDetailRow(
+            Icons.access_time,
+            'Waktu',
+            '${widget.selectedTime} WITA',
+            accentYellow,
+          ),
+          const SizedBox(height: 10),
+          _buildDetailRow(Icons.person, 'Nama', 'deiv patanduk', accentYellow),
         ],
       ),
     );
   }
 
-  Widget _buildServiceOption(String service, String price, bool isChecked) {
-    return Card(
-      color: mediumBlue,
-      margin: const EdgeInsets.only(bottom: 8),
-      child: Padding(
-        padding: const EdgeInsets.all(12.0),
-        child: Row(
-          mainAxisAlignment: MainAxisAlignment.spaceBetween,
+  Widget _buildBarberDetailRow() {
+    return Row(
+      children: [
+        CircleAvatar(
+          radius: 30,
+          backgroundImage: NetworkImage(widget.selectedBarber.imagePath),
+        ),
+        const SizedBox(width: 15),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
+            Text(
+              widget.selectedBarber.name,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 18,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            Row(
               children: [
+                const Icon(Icons.star, color: Colors.yellow, size: 14),
+                const SizedBox(width: 4),
                 Text(
-                  service,
-                  style: const TextStyle(color: Colors.white, fontSize: 16),
-                ),
-                Text(
-                  price,
-                  style: TextStyle(
-                    color: accentYellow,
-                    fontSize: 14,
-                    fontWeight: FontWeight.bold,
-                  ),
+                  '4.9 (${widget.selectedBarber.specialization})',
+                  style: const TextStyle(color: Colors.white70, fontSize: 14),
                 ),
               ],
             ),
-            Checkbox(
-              value: isChecked,
-              onChanged: (bool? newValue) {}, // Statis untuk demo
-              activeColor: accentYellow,
-              checkColor: darkBlue,
-            ),
           ],
         ),
-      ),
+      ],
     );
   }
 
-  // --- WIDGET: BARIS DETAIL PEMBANTU ---
+  Widget _buildServiceRow(
+    IconData icon,
+    String title,
+    String subtitle,
+    Color color,
+  ) {
+    return Row(
+      children: [
+        Icon(icon, color: color, size: 24),
+        const SizedBox(width: 15),
+        Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              title,
+              style: const TextStyle(
+                color: Colors.white,
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            Text(
+              subtitle,
+              style: const TextStyle(color: Colors.white70, fontSize: 14),
+            ),
+          ],
+        ),
+      ],
+    );
+  }
+
   Widget _buildDetailRow(
     IconData icon,
     String label,
@@ -223,10 +244,7 @@ class ConfirmationScreen extends StatelessWidget {
     );
   }
 
-  // --- WIDGET: TOMBOL BOOKING FINAL ---
-  Widget _buildBookNowButton(BuildContext context) {
-    const int total = 80000;
-
+  Widget _buildBookNowButton(BuildContext context, int total) {
     return Container(
       color: darkBlue,
       padding: const EdgeInsets.all(16.0),
@@ -237,7 +255,7 @@ class ConfirmationScreen extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.spaceBetween,
             children: [
               const Text(
-                'Total:',
+                'Total Pembayaran',
                 style: TextStyle(color: Colors.white70, fontSize: 18),
               ),
               Text(
@@ -251,28 +269,63 @@ class ConfirmationScreen extends StatelessWidget {
             ],
           ),
           const SizedBox(height: 10),
-          SizedBox(
-            width: double.infinity,
-            child: ElevatedButton(
-              onPressed: () {
-                // Proses booking final
-              },
-              style: ElevatedButton.styleFrom(
-                backgroundColor: accentYellow,
-                padding: const EdgeInsets.symmetric(vertical: 15),
-                shape: RoundedRectangleBorder(
-                  borderRadius: BorderRadius.circular(10),
+          Row(
+            children: [
+              // Tombol Edit Booking
+              Expanded(
+                child: OutlinedButton(
+                  onPressed: () {
+                    Navigator.pop(context); // Kembali ke halaman Jadwal
+                  },
+                  style: OutlinedButton.styleFrom(
+                    padding: const EdgeInsets.symmetric(vertical: 15),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    side: BorderSide(color: Colors.white70),
+                  ),
+                  child: const Text(
+                    'Edit Booking',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Colors.white70,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ),
-              child: const Text(
-                'Konfirmasi & Bayar Sekarang',
-                style: TextStyle(
-                  fontSize: 18,
-                  color: Colors.black,
-                  fontWeight: FontWeight.bold,
+              const SizedBox(width: 10),
+
+              // Tombol Konfirmasi Booking
+              Expanded(
+                child: ElevatedButton(
+                  onPressed: () {
+                    Navigator.pushAndRemoveUntil(
+                      context,
+                      MaterialPageRoute(
+                        builder: (context) => const MainAppScreen(),
+                      ),
+                      (Route<dynamic> route) => false,
+                    );
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: accentYellow,
+                    padding: const EdgeInsets.symmetric(vertical: 15),
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                  ),
+                  child: const Text(
+                    'Konfirmasi Booking',
+                    style: TextStyle(
+                      fontSize: 18,
+                      color: Colors.black,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
                 ),
               ),
-            ),
+            ],
           ),
         ],
       ),
