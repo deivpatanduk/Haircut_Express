@@ -1,29 +1,70 @@
+import 'package:firebase_core/firebase_core.dart';
+import 'package:flutter/foundation.dart'; // Untuk kIsWeb
 import 'package:flutter/material.dart';
-// Import MainAppScreen yang akan kita buat di langkah berikutnya
-import 'main_app_screen.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:haircut_express/providers/auth_provider.dart';
+import 'package:haircut_express/screens/login_screen.dart';
+import 'package:haircut_express/screens/main_app_screen.dart';
 
-void main() {
-  runApp(const MyApp());
+void main() async {
+  WidgetsFlutterBinding.ensureInitialized();
+
+  // --- LOGIKA INISIALISASI FIREBASE (WEB & ANDROID) ---
+  if (kIsWeb) {
+    // JIKA DIJALANKAN DI WEB (CHROME/EDGE)
+    await Firebase.initializeApp(
+      options: const FirebaseOptions(
+        // SALIN DARI FIREBASE CONSOLE ANDA:
+        apiKey: "AIzaSyCfRN7PQDXSLUhfDQHwDqOGgkw6ahCPVds",
+        authDomain: "haircut-express-c8307.firebaseapp.com",
+        projectId: "haircut-express-c8307",
+        storageBucket: "haircut-express-c8307.firebasestorage.app",
+        messagingSenderId: "821057101080",
+        appId: "1:821057101080:web:28a5abce84e2b802cc126d",
+        measurementId: "G-PVHN02FB0J"
+      ),
+    );
+  } else {
+    // JIKA DIJALANKAN DI ANDROID/IOS (Otomatis pakai google-services.json)
+    await Firebase.initializeApp();
+  }
+  // ----------------------------------------------------
+
+  runApp(
+    const ProviderScope(
+      child: HaircutExpressApp(),
+    ),
+  );
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
-
-  // Warna dasar gelap yang konsisten
-  final Color darkBlue = const Color(0xFF1B263B);
+class HaircutExpressApp extends ConsumerWidget {
+  const HaircutExpressApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final authState = ref.watch(authStateProvider);
+
     return MaterialApp(
-      title: 'HAIRCUT EXPRESS',
+      title: 'Haircut Express',
+      debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        // Menggunakan Dark Theme agar sesuai dengan desain Anda
-        brightness: Brightness.dark,
-        primarySwatch: Colors.blue,
-        scaffoldBackgroundColor: darkBlue, // Background global
+        primarySwatch: Colors.blueGrey,
+        useMaterial3: true,
       ),
-      // Memulai aplikasi dengan kerangka navigasi utama
-      home: const MainAppScreen(),
+      home: authState.when(
+        data: (user) {
+          if (user != null) {
+            return const MainAppScreen();
+          }
+          return const LoginScreen();
+        },
+        loading: () => const Scaffold(
+          body: Center(child: CircularProgressIndicator()),
+        ),
+        error: (e, trace) => Scaffold(
+          body: Center(child: Text('Error: $e')),
+        ),
+      ),
     );
   }
 }

@@ -1,35 +1,40 @@
-name: haircut_expres
+name: haircut_express
 description: "A new Flutter project."
-
-# The following line prevents the package from being accidentally published to
-# pub.dev using `flutter pub publish`. This is preferred for private packages.
 publish_to: 'none'
-
 version: 1.0.0+1
 
 environment:
-  sdk: ^3.9.0
+  sdk: '>=3.2.3 <4.0.0'
 
 dependencies:
   flutter:
     sdk: flutter
-
-  cupertino_icons: ^1.0.8
-
-  # >>> DEPENDENCIES BARU UNTUK KALENDER DAN API <<<
-  table_calendar: ^3.0.9      # Untuk UI kalender interaktif
-  googleapis: ^12.0.0         # Untuk mengambil data dari Google Calendar API
-  googleapis_auth: ^1.4.0      # Untuk otentikasi API
-  http: ^1.6.0
-  # -----------------------------------------------
+  
+  # Icon
+  cupertino_icons: ^1.0.6
+  
+  # Firebase & Backend
+  firebase_core: ^3.6.0
+  firebase_auth: ^5.3.1
+  cloud_firestore: ^5.4.4
+  
+  # State Management
+  flutter_riverpod: ^2.6.1
+  
+  # Utilities
+  intl: ^0.19.0
+  google_fonts: ^6.2.1
+  
+  # Calendar & Google APIs (TAMBAHAN PENTING)
+  table_calendar: ^3.1.0
+  googleapis: ^13.1.0
+  googleapis_auth: ^1.6.0
+  http: ^1.2.0
 
 dev_dependencies:
   flutter_test:
     sdk: flutter
-
-  flutter_lints: ^5.0.0
-
-# ... (Sisa kode flutter: dan konfigurasi lainnya)
+  flutter_lints: ^3.0.0
 
 flutter:
   uses-material-design: true

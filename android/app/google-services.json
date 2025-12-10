@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "821057101080",
+    "project_id": "haircut-express-c8307",
+    "storage_bucket": "haircut-express-c8307.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:821057101080:android:52cf564dd75676e4cc126d",
+        "android_client_info": {
+          "package_name": "com.example.haircut_expres"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBwuGwIg1-XVZ8UE8fi6UEglgun_T-qkVw"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
-import 'booking_screen.dart';
-import 'components/booking_stepper.dart';
-import 'main_app_screen.dart';
+import 'package:haircut_express/components/booking_stepper.dart';
+import 'package:haircut_express/screens/main_app_screen.dart';
 
 class ConfirmationScreen extends StatefulWidget {
   final Barber selectedBarber;
