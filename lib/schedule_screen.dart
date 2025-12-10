@@ -4,13 +4,14 @@ import 'components/booking_stepper.dart';
 import 'components/calendar_widget.dart';
 import 'confirmation_screen.dart';
 
+// IMPORTS API BARU
 import 'package:googleapis/calendar/v3.dart' as calendar;
 import 'package:googleapis_auth/auth_io.dart' as auth;
-import 'package:http/http.dart' as http; // <<< PERBAIKAN IMPORT HTTP
+import 'package:http/http.dart' as http;
 
+// KONSTANTA API ANDA (WAJIB DIGANTI)
 const String googleApiKey = "AIzaSyAyzk9foZ4M9PA0lmWe-3tt7NAchWL1Lfs";
-const String barberCalendarId = 'primary';
-// ...
+const String barberCalendarId = 'deiv.patanduk13@gmail.com';
 
 class ScheduleScreen extends StatefulWidget {
   final Barber selectedBarber;
@@ -29,25 +30,14 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
   String? _selectedDate;
   String? _selectedTimeSlot;
 
-  // Variabel baru untuk menyimpan event API yang dimuat
   List<calendar.Event> _loadedEvents = [];
-  // Status loading API
   bool _isLoadingEvents = false;
 
-  @override
-  void initState() {
-    super.initState();
-    _selectedDate = '5';
-    // Panggil API saat halaman dimuat pertama kali untuk tanggal default (tanggal 5)
-    _loadEventsForCurrentDate();
-  }
-
-  // Fungsi untuk memanggil API
+  // --- FUNGSI FETCH API ---
   Future<List<calendar.Event>> fetchCalendarEvents(DateTime day) async {
     final client = auth.clientViaApiKey(googleApiKey);
     final calendarService = calendar.CalendarApi(client);
 
-    // Tentukan rentang waktu untuk hari yang dipilih
     final DateTime timeMin = DateTime(day.year, day.month, day.day, 0, 0, 0);
     final DateTime timeMax = timeMin.add(const Duration(days: 1));
 
@@ -69,12 +59,17 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     }
   }
 
-  // Fungsi wrapper untuk memuat event dan mengupdate state
+  // --- LOGIKA UTAMA STATE & EVENT LOADING ---
+  @override
+  void initState() {
+    super.initState();
+    _selectedDate = '5';
+    _loadEventsForCurrentDate();
+  }
+
   void _loadEventsForCurrentDate() async {
     if (_selectedDate == null) return;
 
-    // Simulasikan konversi '5' menjadi DateTime (asumsi bulan Desember)
-    // Dalam aplikasi nyata, Anda akan menggunakan objek DateTime yang sebenarnya
     final today = DateTime.now();
     final targetDate = DateTime(
       today.year,
@@ -99,7 +94,6 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     setState(() {
       _selectedDate = date;
     });
-    // Panggil API setiap kali tanggal berubah
     _loadEventsForCurrentDate();
   }
 
@@ -109,6 +103,7 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
     });
   }
 
+  // --- BUILD METHOD ---
   @override
   Widget build(BuildContext context) {
     final bool isContinueEnabled =
@@ -173,11 +168,11 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
               onTimeSelected: _handleTimeSelection,
             ),
 
-            // >>> OUTPUT DARI API KALENDER (Jadwal Sibuk) <<<
+            // TAMPILAN API DI FRONTEND
             Padding(
               padding: const EdgeInsets.all(16.0),
               child: Text(
-                'Jadwal Sibuk (API Status):',
+                'Jadwal Sibuk (Status Koneksi API):',
                 style: TextStyle(
                   color: accentYellow,
                   fontSize: 18,
@@ -189,30 +184,29 @@ class _ScheduleScreenState extends State<ScheduleScreen> {
             if (_isLoadingEvents)
               Center(child: CircularProgressIndicator(color: accentYellow))
             else if (_loadedEvents.isNotEmpty)
-              ..._loadedEvents
-                  .map(
-                    (event) => Padding(
-                      padding: const EdgeInsets.only(
-                        left: 16.0,
-                        right: 16.0,
-                        bottom: 4.0,
-                      ),
-                      child: Text(
-                        'SIBUK: ${event.summary ?? "Event"} (${event.start?.dateTime?.hour}:${event.start?.dateTime?.minute} - ${event.end?.dateTime?.hour}:${event.end?.dateTime?.minute})',
-                        style: const TextStyle(
-                          color: Colors.redAccent,
-                          fontSize: 14,
-                        ),
-                      ),
+              ..._loadedEvents.map(
+                (event) => Padding(
+                  padding: const EdgeInsets.only(
+                    left: 16.0,
+                    right: 16.0,
+                    bottom: 4.0,
+                  ),
+                  child: Text(
+                    'SIBUK: ${event.summary ?? "Event"} (${event.start?.dateTime?.hour}:${event.start?.dateTime?.minute} - ${event.end?.dateTime?.hour}:${event.end?.dateTime?.minute})',
+                    style: const TextStyle(
+                      color: Colors.redAccent,
+                      fontSize: 14,
                     ),
-                  )
-                  .toList()
+                  ),
+                ),
+              )
+            // Hapus .toList() di sini untuk menghilangkan warning
             else
               const Center(
                 child: Padding(
                   padding: EdgeInsets.all(16.0),
                   child: Text(
-                    "Tidak ada event sibuk yang dimuat untuk tanggal ini. (API Terhubung)",
+                    "Tidak ada event sibuk. (API berhasil dihubungkan)",
                     style: TextStyle(color: Colors.greenAccent),
                   ),
                 ),
