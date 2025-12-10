@@ -1,9 +1,9 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:haircut_express/providers/auth_provider.dart';
 import 'dashboard_screen.dart';
 import 'booking_screen.dart';
-import 'schedule_screen.dart'; // Pastikan file ini ada atau ganti dengan placeholder
+import 'schedule_screen.dart';
+import 'profile_screen.dart';
 
 class MainAppScreen extends ConsumerStatefulWidget {
   const MainAppScreen({super.key});
@@ -15,15 +15,16 @@ class MainAppScreen extends ConsumerStatefulWidget {
 class _MainAppScreenState extends ConsumerState<MainAppScreen> {
   int _selectedIndex = 0;
 
-  // Warna Tema (Konsisten dengan desain Anda)
-  final Color darkBlue = const Color(0xFF1B263B);
+  // WARNA TEMA BARU (Sesuai Profil)
+  final Color mainBgColor = const Color(0xFF24344D); 
   final Color accentYellow = const Color(0xFFFFA500);
 
   // Daftar Halaman
   static final List<Widget> _widgetOptions = <Widget>[
-    const DashboardScreen(), // Index 0: Home
-    const BookingScreen(), // Index 1: Booking (Langsung ke halaman booking atau schedule)
-    const ScheduleScreen(), // Index 2: History/Jadwal (Pastikan file schedule_screen.dart ada)
+    const DashboardScreen(),
+    const BookingScreen(),
+    const ScheduleScreen(),
+    const ProfileScreen(),
   ];
 
   void _onItemTapped(int index) {
@@ -35,104 +36,38 @@ class _MainAppScreenState extends ConsumerState<MainAppScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      backgroundColor: darkBlue,
-
-      // --- APP BAR ---
+      backgroundColor: mainBgColor,
+      
+      // --- APP BAR (LOGO) MUNCUL DI SEMUA HALAMAN ---
       appBar: AppBar(
-        backgroundColor: darkBlue,
+        backgroundColor: mainBgColor, // Warna biru tua
         elevation: 0,
-        leading: null,
-        automaticallyImplyLeading: false, // Hilangkan tombol back default
-        
-        // Judul dengan Logo Gunting
+        automaticallyImplyLeading: false,
         title: Row(
-          mainAxisSize: MainAxisSize.min,
           children: [
             Icon(Icons.cut_outlined, color: accentYellow, size: 28),
-            const SizedBox(width: 8),
+            const SizedBox(width: 10),
             const Text(
-              'Haircut Express',
+              "Haircut Express", 
               style: TextStyle(
-                color: Colors.white,
+                color: Colors.white, 
                 fontWeight: FontWeight.bold,
-                fontSize: 20,
-              ),
+                fontSize: 22
+              )
             ),
           ],
         ),
-        
-        // Tombol Aksi di Kanan
         actions: [
-          // Tombol Notifikasi (Dummy UI)
-          IconButton(
-            icon: Stack(
-              children: [
-                Icon(Icons.notifications_none, color: accentYellow),
-                Positioned(
-                  right: 0,
-                  child: Container(
-                    padding: const EdgeInsets.all(1),
-                    decoration: BoxDecoration(
-                      color: Colors.red,
-                      borderRadius: BorderRadius.circular(6),
-                    ),
-                    constraints: const BoxConstraints(
-                      minWidth: 12,
-                      minHeight: 12,
-                    ),
-                    child: const Text(
-                      '3',
-                      style: TextStyle(color: Colors.white, fontSize: 8),
-                      textAlign: TextAlign.center,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-            onPressed: () {
-              // TODO: Implementasi halaman notifikasi
-            },
-          ),
-          
-          // Tombol Logout (Menggunakan Riverpod)
-          IconButton(
-            icon: const Icon(Icons.logout, color: Colors.redAccent),
-            tooltip: 'Keluar',
-            onPressed: () async {
-              // Tampilkan dialog konfirmasi sebelum logout
-              final shouldLogout = await showDialog<bool>(
-                context: context,
-                builder: (context) => AlertDialog(
-                  title: const Text('Konfirmasi'),
-                  content: const Text('Apakah Anda yakin ingin keluar?'),
-                  actions: [
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, false),
-                      child: const Text('Batal'),
-                    ),
-                    TextButton(
-                      onPressed: () => Navigator.pop(context, true),
-                      child: const Text('Keluar', style: TextStyle(color: Colors.red)),
-                    ),
-                  ],
-                ),
-              );
-
-              if (shouldLogout == true) {
-                // Panggil fungsi logout dari AuthController
-                await ref.read(authControllerProvider).logout();
-                // Tidak perlu navigasi manual, authStateChanges di main.dart akan otomatis melempar ke LoginScreen
-              }
-            },
-          ),
-          const SizedBox(width: 8),
+           IconButton(
+             icon: Icon(Icons.notifications_none, color: accentYellow),
+             onPressed: (){},
+           ),
+           const SizedBox(width: 8),
         ],
       ),
 
-      // --- BODY ---
       body: _widgetOptions.elementAt(_selectedIndex),
 
-      // --- BOTTOM NAVIGATION BAR ---
       bottomNavigationBar: BottomNavigationBar(
         items: <BottomNavigationBarItem>[
           BottomNavigationBarItem(
@@ -150,12 +85,17 @@ class _MainAppScreenState extends ConsumerState<MainAppScreen> {
             activeIcon: Icon(Icons.history, color: accentYellow),
             label: 'History',
           ),
+          BottomNavigationBarItem(
+            icon: const Icon(Icons.person_outline),
+            activeIcon: Icon(Icons.person, color: accentYellow),
+            label: 'Profil',
+          ),
         ],
         currentIndex: _selectedIndex,
         selectedItemColor: accentYellow,
         unselectedItemColor: Colors.grey,
         onTap: _onItemTapped,
-        backgroundColor: darkBlue,
+        backgroundColor: mainBgColor, // Background Nav Bar Biru Tua
         type: BottomNavigationBarType.fixed,
       ),
     );
