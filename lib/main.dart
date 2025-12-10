@@ -1,21 +1,22 @@
 import 'package:firebase_core/firebase_core.dart';
-import 'package:flutter/foundation.dart'; // Untuk kIsWeb
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:haircut_express/providers/auth_provider.dart';
-import 'package:haircut_express/screens/login_screen.dart';
-import 'package:haircut_express/screens/main_app_screen.dart';
+import 'package:provider/provider.dart';
+
+import 'providers/auth_provider.dart';
+import 'providers/booking_provider.dart';
+import 'providers/data_provider.dart';
+import 'screens/login_screen.dart';
+import 'screens/main_app_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // --- LOGIKA INISIALISASI FIREBASE (WEB & ANDROID) ---
+  // Inisialisasi Firebase (Web & Mobile)
   if (kIsWeb) {
-    // JIKA DIJALANKAN DI WEB (CHROME/EDGE)
     await Firebase.initializeApp(
       options: const FirebaseOptions(
-        // SALIN DARI FIREBASE CONSOLE ANDA:
-        apiKey: "AIzaSyCfRN7PQDXSLUhfDQHwDqOGgkw6ahCPVds",
+        apiKey: "AIzaSyCfRN7PQDXSLUhfDQHwDqOGgkw6ahCPVds", 
         authDomain: "haircut-express-c8307.firebaseapp.com",
         projectId: "haircut-express-c8307",
         storageBucket: "haircut-express-c8307.firebasestorage.app",
@@ -25,44 +26,61 @@ void main() async {
       ),
     );
   } else {
-    // JIKA DIJALANKAN DI ANDROID/IOS (Otomatis pakai google-services.json)
     await Firebase.initializeApp();
   }
-  // ----------------------------------------------------
 
-  runApp(
-    const ProviderScope(
-      child: HaircutExpressApp(),
-    ),
-  );
+  runApp(const MyApp());
 }
 
-class HaircutExpressApp extends ConsumerWidget {
-  const HaircutExpressApp({super.key});
+class MyApp extends StatelessWidget {
+  const MyApp({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final authState = ref.watch(authStateProvider);
-
-    return MaterialApp(
-      title: 'Haircut Express',
-      debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-        primarySwatch: Colors.blueGrey,
-        useMaterial3: true,
-      ),
-      home: authState.when(
-        data: (user) {
-          if (user != null) {
-            return const MainAppScreen();
-          }
-          return const LoginScreen();
-        },
-        loading: () => const Scaffold(
-          body: Center(child: CircularProgressIndicator()),
+  Widget build(BuildContext context) {
+    return MultiProvider(
+      providers: [
+        ChangeNotifierProvider(create: (_) => AuthProvider()),
+        ChangeNotifierProvider(create: (_) => DataProvider()),
+        ChangeNotifierProvider(create: (_) => BookingProvider()),
+      ],
+      child: MaterialApp(
+        title: 'Haircut Express',
+        debugShowCheckedModeBanner: false,
+        theme: ThemeData(
+          useMaterial3: true,
+          // 1. BACKGROUND: Set warna background global (Biru Tua)
+          scaffoldBackgroundColor: const Color(0xFF1B263B),
+          
+          // 2. TEXT: Warna teks default jadi putih agar kontras
+          textTheme: const TextTheme(
+            bodyMedium: TextStyle(color: Colors.white),
+            bodyLarge: TextStyle(color: Colors.white),
+          ),
+          
+          // 3. APPBAR: Warna AppBar global
+          appBarTheme: const AppBarTheme(
+            backgroundColor: Color(0xFF1B263B),
+            foregroundColor: Colors.white,
+            elevation: 0,
+          ),
+          
+          // 4. NAVBAR: Warna BottomNavigationBar global (Penyebab error sebelumnya)
+          bottomNavigationBarTheme: const BottomNavigationBarThemeData(
+            backgroundColor: Color(0xFF24344D),
+            selectedItemColor: Color(0xFFFFA500),
+            unselectedItemColor: Colors.grey,
+            type: BottomNavigationBarType.fixed,
+          ),
         ),
-        error: (e, trace) => Scaffold(
-          body: Center(child: Text('Error: $e')),
+        // Wrapper untuk cek login status
+        home: Consumer<AuthProvider>(
+          builder: (context, auth, _) {
+            if (auth.currentUser != null) {
+              return const MainAppScreen();
+            } else {
+              return const LoginScreen();
+            }
+          },
         ),
       ),
     );

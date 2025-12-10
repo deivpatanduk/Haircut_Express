@@ -1,43 +1,61 @@
+import 'package:flutter/material.dart';
 import 'package:cloud_firestore/cloud_firestore.dart';
-import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:haircut_express/models/barber.dart';
+import '../models/barber.dart';
+import '../models/service_model.dart';
+import '../models/appointment_model.dart';
 
-// 1. Ambil data Stylist
-final barbersProvider = StreamProvider<List<Barber>>((ref) {
-  return FirebaseFirestore.instance.collection('employees').snapshots().map((snapshot) {
-    return snapshot.docs.map((doc) {
-      final data = doc.data();
-      return Barber(
-        name: data['name'] ?? 'Tanpa Nama',
-        specialty: data['specialty'] ?? 'General',
-        rating: (data['rating'] ?? 0.0).toDouble(),
-        photoUrl: data['photoUrl'] ?? 'https://i.pravatar.cc/150',
-      );
-    }).toList();
-  });
-});
-
-// 2. Ambil data Services
-final servicesProvider = StreamProvider<List<Map<String, dynamic>>>((ref) {
-  return FirebaseFirestore.instance.collection('services').snapshots().map((snapshot) {
-    return snapshot.docs.map((doc) {
-      final data = doc.data();
-      data['serviceId'] = doc.id; 
-      return data;
-    }).toList();
-  });
-});
-
-// 3. (BARU) Ambil Booking User untuk Statistik
-final userBookingsProvider = StreamProvider<List<Map<String, dynamic>>>((ref) {
-  final user = FirebaseAuth.instance.currentUser;
+class DataProvider with ChangeNotifier {
+  List<Barber> _barbers = [];
+  List<ServiceModel> _services = [];
+  List<AppointmentModel> _userAppointments = [];
   
-  if (user == null) return Stream.value([]); 
+  bool _isLoading = false;
 
-  return FirebaseFirestore.instance
-      .collection('appointments')
-      .where('userId', isEqualTo: user.uid)
-      .snapshots()
-      .map((snapshot) => snapshot.docs.map((doc) => doc.data()).toList());
-});
+  List<Barber> get barbers => _barbers;
+  List<ServiceModel> get services => _services;
+  List<AppointmentModel> get userAppointments => _userAppointments;
+  bool get isLoading => _isLoading;
+
+  // Fetch Data Awal (Barber & Service)
+  Future<void> fetchAllData() async {
+    _isLoading = true;
+    notifyListeners();
+
+    try {
+      final barberSnapshot = await FirebaseFirestore.instance.collection('employees').get();
+      _barbers = barberSnapshot.docs.map((doc) {
+        return Barber.fromMap(doc.data(), doc.id);
+      }).toList();
+
+      final serviceSnapshot = await FirebaseFirestore.instance.collection('services').get();
+      _services = serviceSnapshot.docs.map((doc) {
+        return ServiceModel.fromMap(doc.data(), doc.id);
+      }).toList();
+
+    } catch (e) {
+      print("Error fetching data: $e");
+    } finally {
+      _isLoading = false;
+      notifyListeners();
+    }
+  }
+
+  // Fetch History Booking User
+  Future<void> fetchUserAppointments(String userId) async {
+    try {
+      final querySnapshot = await FirebaseFirestore.instance
+          .collection('appointments')
+          .where('userId', isEqualTo: userId)
+          // .orderBy('dateTime', descending: true) // Aktifkan nanti jika sudah buat Index di Firebase
+          .get();
+
+      _userAppointments = querySnapshot.docs.map((doc) {
+        return AppointmentModel.fromMap(doc.data(), doc.id);
+      }).toList();
+      
+      notifyListeners(); 
+    } catch (e) {
+      print("Error fetching appointments: $e"); 
+    }
+  }
+}

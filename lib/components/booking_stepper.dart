@@ -3,115 +3,65 @@ import 'package:flutter/material.dart';
 class BookingStepper extends StatelessWidget {
   final int currentStep;
 
-  const BookingStepper({super.key, required this.currentStep});
-
-  final Color darkBlue = const Color(0xFF1B263B);
-  final Color mediumBlue = const Color(0xFF233044);
-  final Color accentYellow = const Color(0xFFFFA500);
+  const BookingStepper({Key? key, required this.currentStep}) : super(key: key);
 
   @override
   Widget build(BuildContext context) {
-    const double circleRadius = 15.0;
-    final double availableWidth = MediaQuery.of(context).size.width - 32;
-
-    return SizedBox(
-      width: availableWidth,
-      height: 60,
-      child: Stack(
+    return Container(
+      padding: EdgeInsets.symmetric(vertical: 20, horizontal: 20),
+      color: Colors.white,
+      child: Row(
         children: [
-          // GARIS PEMISAH LATAR BELAKANG
-          Positioned(
-            top: 15,
-            width: availableWidth,
-            height: 2,
-
-            child: Row(
-              children: [
-                const SizedBox(width: circleRadius),
-
-                // Garis 1 (Dipilih Barber -> Jadwal)
-                Expanded(
-                  child: Container(
-                    height: 2,
-                    color: currentStep >= 2
-                        ? accentYellow
-                        : Colors.grey.shade700,
-                    margin: const EdgeInsets.symmetric(
-                      horizontal: circleRadius,
-                    ),
-                  ),
-                ),
-
-                // Garis 2 (Jadwal -> Konfirmasi)
-                Expanded(
-                  child: Container(
-                    height: 2,
-                    color: currentStep >= 3
-                        ? accentYellow
-                        : Colors.grey.shade700,
-                    margin: const EdgeInsets.symmetric(
-                      horizontal: circleRadius,
-                    ),
-                  ),
-                ),
-
-                const SizedBox(width: circleRadius),
-              ],
-            ),
-          ),
-
-          // WIDGET LANGKAH (Angka dan Teks)
-          Row(
-            mainAxisAlignment: MainAxisAlignment.spaceBetween,
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              _buildStep(1, 'Pilih Barber', currentStep),
-              _buildStep(2, 'Jadwal', currentStep),
-              _buildStep(3, 'Konfirmasi', currentStep),
-            ],
-          ),
+          _buildStepCircle(0, "Stylist"), // Langkah 1
+          _buildLine(0),
+          _buildStepCircle(1, "Service"), // Langkah 2
+          _buildLine(1),
+          _buildStepCircle(2, "Date & Time"), // Langkah 3
         ],
       ),
     );
   }
 
-  Widget _buildStep(int stepNumber, String title, int current) {
-    bool isActive = stepNumber == current;
-    bool isCompleted = stepNumber <= current;
+  Widget _buildStepCircle(int index, String label) {
+    bool isActive = currentStep >= index;
+    bool isCurrent = currentStep == index;
 
     return Column(
       children: [
         Container(
-          width: 30,
-          height: 30,
+          width: 32,
+          height: 32,
           decoration: BoxDecoration(
-            color: isActive ? accentYellow : mediumBlue,
+            color: isActive ? Colors.black : Colors.white,
+            border: Border.all(color: isActive ? Colors.black : Colors.grey.shade300),
             shape: BoxShape.circle,
-            border: Border.all(
-              color: isCompleted ? accentYellow : Colors.grey.shade700,
-              width: 2,
-            ),
           ),
           child: Center(
-            child: Text(
-              '$stepNumber',
-              style: TextStyle(
-                color: isActive ? darkBlue : Colors.white,
-                fontWeight: FontWeight.bold,
-              ),
-            ),
+            child: isActive
+                ? Icon(Icons.check, color: Colors.white, size: 18)
+                : Text("${index + 1}", style: TextStyle(color: Colors.grey)),
           ),
         ),
-        const SizedBox(height: 5),
+        SizedBox(height: 4),
         Text(
-          title,
-          textAlign: TextAlign.center,
+          label,
           style: TextStyle(
-            color: isCompleted ? accentYellow : Colors.white70,
             fontSize: 12,
+            fontWeight: isCurrent ? FontWeight.bold : FontWeight.normal,
+            color: isActive ? Colors.black : Colors.grey,
           ),
-        ),
+        )
       ],
+    );
+  }
+
+  Widget _buildLine(int index) {
+    return Expanded(
+      child: Container(
+        height: 2,
+        color: currentStep > index ? Colors.black : Colors.grey.shade300,
+        margin: EdgeInsets.symmetric(horizontal: 4, vertical: 15),
+      ),
     );
   }
 }

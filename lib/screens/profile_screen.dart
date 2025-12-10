@@ -1,25 +1,31 @@
-import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter_riverpod/flutter_riverpod.dart';
-import 'package:haircut_express/providers/auth_provider.dart';
-import 'package:haircut_express/providers/data_provider.dart';
+import 'package:provider/provider.dart'; // Ganti Riverpod dengan Provider
+import '../providers/auth_provider.dart';
+import '../providers/data_provider.dart';
 
-class ProfileScreen extends ConsumerWidget {
+class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
 
-  // WARNA
-  // Background Profil: Biru Tua (Sedikit lebih terang dari #1B263B)
   final Color profileBgColor = const Color(0xFF24344D); 
   final Color accentYellow = const Color(0xFFFFA500);
-  final Color cardColor = const Color(0xFF1B263B); // Warna kartu statistik (gelap)
+  final Color cardColor = const Color(0xFF1B263B); 
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final user = FirebaseAuth.instance.currentUser;
-    final bookingAsync = ref.watch(userBookingsProvider); 
+  Widget build(BuildContext context) {
+    // Ambil user dari AuthProvider
+    final authProvider = Provider.of<AuthProvider>(context);
+    final user = authProvider.currentUser;
+    
+    // Ambil data booking dari DataProvider (untuk statistik)
+    final dataProvider = Provider.of<DataProvider>(context);
+    final bookings = dataProvider.userAppointments;
+
+    // Hitung statistik sederhana
+    final upcomingCount = bookings.where((b) => b.status == 'pending').length;
+    final totalVisits = bookings.length;
 
     return Scaffold(
-      backgroundColor: profileBgColor, // Background Baru
+      backgroundColor: profileBgColor,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(24.0),
@@ -35,9 +41,10 @@ class ProfileScreen extends ConsumerWidget {
                         CircleAvatar(
                           radius: 55,
                           backgroundColor: accentYellow,
-                          child: const CircleAvatar(
+                          child: CircleAvatar(
                             radius: 50,
-                            backgroundImage: NetworkImage('https://i.pravatar.cc/300'),
+                            backgroundImage: const NetworkImage('https://i.pravatar.cc/300'),
+                            onBackgroundImageError: (_, __) => const Icon(Icons.person, size: 50),
                           ),
                         ),
                         Positioned(
@@ -80,21 +87,12 @@ class ProfileScreen extends ConsumerWidget {
               ),
               const SizedBox(height: 16),
               
-              bookingAsync.when(
-                loading: () => const Center(child: CircularProgressIndicator()),
-                error: (e, _) => Text("Error: $e", style: const TextStyle(color: Colors.white)),
-                data: (bookings) {
-                  final upcoming = bookings.where((b) => b['status'] == 'pending' || b['status'] == 'confirmed').length;
-                  final history = bookings.length; 
-
-                  return Row(
-                    children: [
-                      _buildStatCard('Upcoming', upcoming.toString(), Icons.calendar_today_outlined),
-                      const SizedBox(width: 16),
-                      _buildStatCard('Total Visits', history.toString(), Icons.history),
-                    ],
-                  );
-                },
+              Row(
+                children: [
+                  _buildStatCard('Upcoming', upcomingCount.toString(), Icons.calendar_today_outlined),
+                  const SizedBox(width: 16),
+                  _buildStatCard('Total Visits', totalVisits.toString(), Icons.history),
+                ],
               ),
 
               const SizedBox(height: 30),
@@ -150,7 +148,6 @@ class ProfileScreen extends ConsumerWidget {
                 width: double.infinity,
                 child: ElevatedButton.icon(
                   onPressed: () async {
-                    // Konfirmasi Logout
                     final confirm = await showDialog<bool>(
                       context: context,
                       builder: (ctx) => AlertDialog(
@@ -164,13 +161,14 @@ class ProfileScreen extends ConsumerWidget {
                     );
 
                     if (confirm == true) {
-                      await ref.read(authControllerProvider).logout();
+                      // Gunakan method logout dari AuthProvider (bukan riverpod ref.read)
+                      await Provider.of<AuthProvider>(context, listen: false).logout();
                     }
                   },
                   icon: const Icon(Icons.logout, color: Colors.white),
-                  label: const Text("KELUAR APLIKASI", style: TextStyle(fontWeight: FontWeight.bold)),
+                  label: const Text("LOGOUT", style: TextStyle(fontWeight: FontWeight.bold)),
                   style: ElevatedButton.styleFrom(
-                    backgroundColor: Colors.redAccent, // Warna merah agar kontras
+                    backgroundColor: Colors.redAccent,
                     foregroundColor: Colors.white,
                     padding: const EdgeInsets.symmetric(vertical: 16),
                     shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
@@ -186,13 +184,12 @@ class ProfileScreen extends ConsumerWidget {
     );
   }
 
-  // Widget Helper Kartu Statistik
   Widget _buildStatCard(String title, String count, IconData icon) {
     return Expanded(
       child: Container(
         padding: const EdgeInsets.symmetric(vertical: 20, horizontal: 16),
         decoration: BoxDecoration(
-          color: cardColor, // Warna kotak statistik lebih gelap dari background
+          color: cardColor,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(color: Colors.black.withOpacity(0.1), blurRadius: 8, offset: const Offset(0, 4)),
