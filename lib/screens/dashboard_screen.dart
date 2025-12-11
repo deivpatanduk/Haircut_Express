@@ -1,67 +1,51 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-import '../components/barber_card.dart';
-import '../providers/auth_provider.dart';
-import '../providers/data_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:haircut_express/components/barber_card.dart';
+import 'package:haircut_express/providers/auth_provider.dart';
+import 'package:haircut_express/providers/data_provider.dart';
 
-class DashboardScreen extends StatefulWidget {
+class DashboardScreen extends ConsumerWidget {
   const DashboardScreen({super.key});
 
-  @override
-  State<DashboardScreen> createState() => _DashboardScreenState();
-}
-
-class _DashboardScreenState extends State<DashboardScreen> {
-  @override
-  void initState() {
-    super.initState();
-    // Fetch data saat dashboard dibuka
-    Future.microtask(() => 
-      Provider.of<DataProvider>(context, listen: false).fetchAllData()
-    );
-  }
+  final Color mainBgColor = const Color(0xFF24344D); 
+  final Color accentYellow = const Color(0xFFFFB300);
 
   @override
-  Widget build(BuildContext context) {
-    final user = Provider.of<AuthProvider>(context).currentUser;
-    final dataProvider = Provider.of<DataProvider>(context);
+  Widget build(BuildContext context, WidgetRef ref) {
+    // PERBAIKAN: Gunakan ref.watch
+    final authState = ref.watch(authStateProvider);
+    final user = authState.value;
+    final barbersAsyncValue = ref.watch(barbersProvider);
 
     return Scaffold(
-      backgroundColor: const Color(0xFF24344D),
+      backgroundColor: mainBgColor,
       body: SafeArea(
         child: SingleChildScrollView(
           padding: const EdgeInsets.all(20.0),
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              // Header
               Row(
                 mainAxisAlignment: MainAxisAlignment.spaceBetween,
                 children: [
                   Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('Selamat Datang,', style: TextStyle(color: Colors.white70)),
+                      const Text('Selamat Datang,', style: TextStyle(color: Colors.white70, fontSize: 14)),
                       Text(user?.displayName ?? 'Pelanggan', style: const TextStyle(fontSize: 24, fontWeight: FontWeight.bold, color: Colors.white)),
                     ],
                   ),
-                  const CircleAvatar(backgroundColor: Colors.orange, child: Icon(Icons.person, color: Colors.white)),
+                  CircleAvatar(radius: 25, backgroundColor: accentYellow, child: const Icon(Icons.person, color: Colors.black)),
                 ],
               ),
-              const SizedBox(height: 30),
-              
-              const Text("Top Stylist", style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold, color: Colors.white)),
-              const SizedBox(height: 16),
-
-              // List Barber
-              if (dataProvider.isLoading)
-                const Center(child: CircularProgressIndicator())
-              else if (dataProvider.barbers.isEmpty)
-                const Text("Belum ada stylist tersedia.", style: TextStyle(color: Colors.white))
-              else
-                Column(
-                  children: dataProvider.barbers.map((b) => BarberCard(barber: b)).toList(),
-                ),
+              // ... Sisa kode UI (Banner, List Barber) sama seperti sebelumnya ...
+              // Pastikan tidak ada `Provider.of` di sini
+              const SizedBox(height: 24),
+              barbersAsyncValue.when(
+                data: (barbers) => Column(children: barbers.map((b) => BarberCard(barber: b)).toList()),
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (e, _) => Text("Error: $e"),
+              )
             ],
           ),
         ),

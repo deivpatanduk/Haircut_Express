@@ -1,38 +1,51 @@
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart'; // Pakai Provider
-import '../providers/auth_provider.dart';
-import 'register_screen.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:haircut_express/providers/auth_provider.dart';
+import 'package:haircut_express/screens/register_screen.dart';
+import 'package:haircut_express/utils/db_seeder.dart';
 
-class LoginScreen extends StatefulWidget {
+class LoginScreen extends ConsumerStatefulWidget {
   const LoginScreen({super.key});
 
   @override
-  State<LoginScreen> createState() => _LoginScreenState();
+  ConsumerState<LoginScreen> createState() => _LoginScreenState();
 }
 
-class _LoginScreenState extends State<LoginScreen> {
+class _LoginScreenState extends ConsumerState<LoginScreen> {
   final _emailController = TextEditingController();
   final _passwordController = TextEditingController();
   bool _isLoading = false;
   bool _isPasswordVisible = false;
 
   final Color darkBlue = const Color(0xFF1B263B);
-  final Color accentYellow = const Color(0xFFFFA500);
+  final Color accentYellow = const Color(0xFFFFB300);
 
+  // Handle Login Email/Password
   void _handleLogin() async {
     setState(() => _isLoading = true);
     try {
-      // Panggil fungsi login dari AuthProvider
-      await Provider.of<AuthProvider>(context, listen: false).login(
+      await ref.read(authControllerProvider).login(
             _emailController.text.trim(),
             _passwordController.text.trim(),
           );
-      // Tidak perlu navigasi manual, main.dart akan mendeteksi perubahan auth
+      // Sukses: authStateChanges di main.dart akan otomatis redirect ke Home
     } catch (e) {
       if (!mounted) return;
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text('Login Gagal: ${e.toString()}')),
-      );
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Login Gagal: $e')));
+    } finally {
+      if (mounted) setState(() => _isLoading = false);
+    }
+  }
+
+  // Handle Login Google
+  void _handleGoogleLogin() async {
+    setState(() => _isLoading = true);
+    try {
+      // Pastikan fungsi signInWithGoogle ada di auth_provider.dart (akan kita cek di langkah 2)
+      await ref.read(authControllerProvider).signInWithGoogle();
+    } catch (e) {
+      if (!mounted) return;
+      ScaffoldMessenger.of(context).showSnackBar(SnackBar(content: Text('Google Login Gagal: $e')));
     } finally {
       if (mounted) setState(() => _isLoading = false);
     }
@@ -45,21 +58,19 @@ class _LoginScreenState extends State<LoginScreen> {
       body: SafeArea(
         child: Center(
           child: SingleChildScrollView(
-            padding: const EdgeInsets.symmetric(horizontal: 24.0),
+            padding: const EdgeInsets.all(24.0),
             child: Column(
               mainAxisAlignment: MainAxisAlignment.center,
-              crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Icon(Icons.content_cut_outlined, size: 80, color: Colors.white),
-                const SizedBox(height: 32),
-                const Text(
-                  'Welcome Back!',
-                  textAlign: TextAlign.center,
-                  style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white),
+                GestureDetector(
+                  onDoubleTap: () => DbSeeder().seedDatabase(context),
+                  child: const Icon(Icons.content_cut_outlined, size: 80, color: Colors.white),
                 ),
+                const SizedBox(height: 32),
+                const Text('Welcome Back!', style: TextStyle(fontSize: 28, fontWeight: FontWeight.bold, color: Colors.white)),
                 const SizedBox(height: 40),
                 
-                // INPUT EMAIL
+                // Email Field
                 TextField(
                   controller: _emailController,
                   style: const TextStyle(color: Colors.white),
@@ -67,14 +78,14 @@ class _LoginScreenState extends State<LoginScreen> {
                     labelText: 'Email',
                     labelStyle: const TextStyle(color: Colors.white70),
                     prefixIcon: Icon(Icons.email_outlined, color: accentYellow),
-                    filled: true, 
+                    filled: true,
                     fillColor: Colors.white.withOpacity(0.1),
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                 ),
                 const SizedBox(height: 16),
-
-                // INPUT PASSWORD
+                
+                // Password Field
                 TextField(
                   controller: _passwordController,
                   obscureText: !_isPasswordVisible,
@@ -92,29 +103,62 @@ class _LoginScreenState extends State<LoginScreen> {
                     border: OutlineInputBorder(borderRadius: BorderRadius.circular(12)),
                   ),
                 ),
+                
                 const SizedBox(height: 24),
-
-                // TOMBOL LOGIN
-                ElevatedButton(
-                  onPressed: _isLoading ? null : _handleLogin,
-                  style: ElevatedButton.styleFrom(
-                    backgroundColor: accentYellow,
-                    padding: const EdgeInsets.symmetric(vertical: 16),
-                    shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                
+                // LOGIN BUTTON
+                SizedBox(
+                  width: double.infinity,
+                  child: ElevatedButton(
+                    onPressed: _isLoading ? null : _handleLogin,
+                    style: ElevatedButton.styleFrom(
+                      backgroundColor: accentYellow,
+                      foregroundColor: darkBlue,
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                    child: _isLoading 
+                      ? SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: darkBlue, strokeWidth: 2))
+                      : const Text('LOGIN', style: TextStyle(fontSize: 16, fontWeight: FontWeight.bold)),
                   ),
-                  child: _isLoading
-                      ? SizedBox(height: 20, width: 20, child: CircularProgressIndicator(color: darkBlue))
-                      : Text('LOGIN', style: TextStyle(color: darkBlue, fontSize: 16, fontWeight: FontWeight.bold)),
+                ),
+
+                const SizedBox(height: 16),
+
+                // GOOGLE SIGN IN BUTTON
+                SizedBox(
+                  width: double.infinity,
+                  child: OutlinedButton.icon(
+                    onPressed: _isLoading ? null : _handleGoogleLogin,
+                    icon: Image.network(
+                      'https://upload.wikimedia.org/wikipedia/commons/thumb/c/c1/Google_%22G%22_logo.svg/1200px-Google_%22G%22_logo.svg.png',
+                      height: 24,
+                      errorBuilder: (context, error, stackTrace) => const Icon(Icons.g_mobiledata, color: Colors.white),
+                    ),
+                    label: const Text('Sign in with Google', style: TextStyle(color: Colors.white)),
+                    style: OutlinedButton.styleFrom(
+                      padding: const EdgeInsets.symmetric(vertical: 16),
+                      side: const BorderSide(color: Colors.white),
+                      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
+                    ),
+                  ),
                 ),
                 
                 const SizedBox(height: 24),
                 
+                // SIGN UP LINK (KEMBALIKAN INI)
                 Row(
                   mainAxisAlignment: MainAxisAlignment.center,
                   children: [
                     const Text("Don't have an account? ", style: TextStyle(color: Colors.white70)),
                     GestureDetector(
-                      onTap: () => Navigator.push(context, MaterialPageRoute(builder: (_) => const RegisterScreen())),
+                      onTap: () {
+                        // Navigasi ke Register Screen
+                        Navigator.push(
+                          context,
+                          MaterialPageRoute(builder: (context) => const RegisterScreen()),
+                        );
+                      },
                       child: Text('Sign Up', style: TextStyle(color: accentYellow, fontWeight: FontWeight.bold)),
                     ),
                   ],

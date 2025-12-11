@@ -1,18 +1,17 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart';
-
-import 'providers/auth_provider.dart';
-import 'providers/booking_provider.dart';
-import 'providers/data_provider.dart';
-import 'screens/login_screen.dart';
-import 'screens/main_app_screen.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:haircut_express/providers/auth_provider.dart';
+import 'package:haircut_express/screens/login_screen.dart';
+import 'package:haircut_express/screens/main_app_screen.dart';
+import 'package:haircut_express/screens/admin/admin_dashboard_screen.dart'; // Import Admin Screen
+import 'package:haircut_express/services/notification_service.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
 
-  // Inisialisasi Firebase (Web & Mobile)
+    // Inisialisasi Firebase
   if (kIsWeb) {
     await Firebase.initializeApp(
       options: const FirebaseOptions(
@@ -25,62 +24,53 @@ void main() async {
         measurementId: "G-PVHN02FB0J"
       ),
     );
-  } else {
+ } else {
     await Firebase.initializeApp();
   }
 
-  runApp(const MyApp());
+  await NotificationService.initialize();
+
+  runApp(
+    const ProviderScope(
+      child: HaircutExpressApp(),
+    ),
+  );
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class HaircutExpressApp extends ConsumerWidget { // <-- Typo cclass diperbaiki menjadi class
+  const HaircutExpressApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return MultiProvider(
-      providers: [
-        ChangeNotifierProvider(create: (_) => AuthProvider()),
-        ChangeNotifierProvider(create: (_) => DataProvider()),
-        ChangeNotifierProvider(create: (_) => BookingProvider()),
-      ],
-      child: MaterialApp(
-        title: 'Haircut Express',
-        debugShowCheckedModeBanner: false,
-        theme: ThemeData(
-          useMaterial3: true,
-          // 1. BACKGROUND: Set warna background global (Biru Tua)
-          scaffoldBackgroundColor: const Color(0xFF1B263B),
-          
-          // 2. TEXT: Warna teks default jadi putih agar kontras
-          textTheme: const TextTheme(
-            bodyMedium: TextStyle(color: Colors.white),
-            bodyLarge: TextStyle(color: Colors.white),
-          ),
-          
-          // 3. APPBAR: Warna AppBar global
-          appBarTheme: const AppBarTheme(
-            backgroundColor: Color(0xFF1B263B),
-            foregroundColor: Colors.white,
-            elevation: 0,
-          ),
-          
-          // 4. NAVBAR: Warna BottomNavigationBar global (Penyebab error sebelumnya)
-          bottomNavigationBarTheme: const BottomNavigationBarThemeData(
-            backgroundColor: Color(0xFF24344D),
-            selectedItemColor: Color(0xFFFFA500),
-            unselectedItemColor: Colors.grey,
-            type: BottomNavigationBarType.fixed,
-          ),
+  Widget build(BuildContext context, WidgetRef ref) {
+    // Memantau ROLE user secara real-time
+    final roleAsync = ref.watch(userRoleProvider);
+
+    return MaterialApp(
+      title: 'Haircut Express',
+      debugShowCheckedModeBanner: false,
+      theme: ThemeData(
+        primarySwatch: Colors.blueGrey,
+        useMaterial3: true,
+      ),
+      home: roleAsync.when(
+        data: (role) {
+          // Debugging: Cetak role ke konsol biar tahu
+          print("Current User Role: $role");
+
+          if (role == 'admin') {
+            return const AdminDashboardScreen();
+          } else if (role == 'pelanggan') {
+            return const MainAppScreen();
+          } else {
+            // Guest atau belum login
+            return const LoginScreen();
+          }
+        },
+        loading: () => const Scaffold(
+          body: Center(child: CircularProgressIndicator()),
         ),
-        // Wrapper untuk cek login status
-        home: Consumer<AuthProvider>(
-          builder: (context, auth, _) {
-            if (auth.currentUser != null) {
-              return const MainAppScreen();
-            } else {
-              return const LoginScreen();
-            }
-          },
+        error: (e, trace) => Scaffold(
+          body: Center(child: Text('Error: $e')),
         ),
       ),
     );

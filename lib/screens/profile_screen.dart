@@ -1,28 +1,21 @@
+import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
-import 'package:provider/provider.dart'; // Ganti Riverpod dengan Provider
-import '../providers/auth_provider.dart';
-import '../providers/data_provider.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:haircut_express/providers/auth_provider.dart';
+import 'package:haircut_express/providers/data_provider.dart';
+import 'package:haircut_express/screens/edit_profile_screen.dart'; // IMPORT BARU
 
-class ProfileScreen extends StatelessWidget {
+class ProfileScreen extends ConsumerWidget {
   const ProfileScreen({super.key});
 
   final Color profileBgColor = const Color(0xFF24344D); 
-  final Color accentYellow = const Color(0xFFFFA500);
+  final Color accentYellow = const Color(0xFFFFB300); // Warna Amber Tua
   final Color cardColor = const Color(0xFF1B263B); 
 
   @override
-  Widget build(BuildContext context) {
-    // Ambil user dari AuthProvider
-    final authProvider = Provider.of<AuthProvider>(context);
-    final user = authProvider.currentUser;
-    
-    // Ambil data booking dari DataProvider (untuk statistik)
-    final dataProvider = Provider.of<DataProvider>(context);
-    final bookings = dataProvider.userAppointments;
-
-    // Hitung statistik sederhana
-    final upcomingCount = bookings.where((b) => b.status == 'pending').length;
-    final totalVisits = bookings.length;
+  Widget build(BuildContext context, WidgetRef ref) {
+    final user = FirebaseAuth.instance.currentUser;
+    final bookingAsync = ref.watch(userBookingsProvider); 
 
     return Scaffold(
       backgroundColor: profileBgColor,
@@ -41,26 +34,37 @@ class ProfileScreen extends StatelessWidget {
                         CircleAvatar(
                           radius: 55,
                           backgroundColor: accentYellow,
-                          child: CircleAvatar(
+                          child: const CircleAvatar(
                             radius: 50,
-                            backgroundImage: const NetworkImage('https://i.pravatar.cc/300'),
-                            onBackgroundImageError: (_, __) => const Icon(Icons.person, size: 50),
+                            backgroundImage: NetworkImage('https://i.pravatar.cc/300'),
                           ),
                         ),
                         Positioned(
                           bottom: 0,
                           right: 0,
-                          child: Container(
-                            padding: const EdgeInsets.all(4),
-                            decoration: const BoxDecoration(
-                              color: Colors.white,
-                              shape: BoxShape.circle,
+                          child: GestureDetector(
+                            onTap: () {
+                              // NAVIGASI KE HALAMAN EDIT
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(builder: (context) => const EditProfileScreen()),
+                              );
+                            },
+                            child: Container(
+                              padding: const EdgeInsets.all(6),
+                              decoration: const BoxDecoration(
+                                color: Colors.white,
+                                shape: BoxShape.circle,
+                              ),
+                              child: const Icon(Icons.edit, size: 20, color: Colors.black),
                             ),
-                            child: const Icon(Icons.edit, size: 20, color: Colors.black),
                           ),
                         )
                       ],
                     ),
+                    // ... (Sisa kode tampilan profil sama seperti sebelumnya) ...
+                    // Agar kode tidak terlalu panjang, salin bagian bawah dari jawaban sebelumnya
+                    // Mulai dari 'const SizedBox(height: 16),' sampai akhir file.
                     const SizedBox(height: 16),
                     Text(
                       user?.displayName ?? 'Pengguna',
@@ -87,12 +91,21 @@ class ProfileScreen extends StatelessWidget {
               ),
               const SizedBox(height: 16),
               
-              Row(
-                children: [
-                  _buildStatCard('Upcoming', upcomingCount.toString(), Icons.calendar_today_outlined),
-                  const SizedBox(width: 16),
-                  _buildStatCard('Total Visits', totalVisits.toString(), Icons.history),
-                ],
+              bookingAsync.when(
+                loading: () => const Center(child: CircularProgressIndicator()),
+                error: (e, _) => Text("Error: $e", style: const TextStyle(color: Colors.white)),
+                data: (bookings) {
+                  final upcoming = bookings.where((b) => b['status'] == 'pending' || b['status'] == 'confirmed').length;
+                  final history = bookings.length; 
+
+                  return Row(
+                    children: [
+                      _buildStatCard('Upcoming', upcoming.toString(), Icons.calendar_today_outlined),
+                      const SizedBox(width: 16),
+                      _buildStatCard('Total Visits', history.toString(), Icons.history),
+                    ],
+                  );
+                },
               ),
 
               const SizedBox(height: 30),
@@ -161,12 +174,11 @@ class ProfileScreen extends StatelessWidget {
                     );
 
                     if (confirm == true) {
-                      // Gunakan method logout dari AuthProvider (bukan riverpod ref.read)
-                      await Provider.of<AuthProvider>(context, listen: false).logout();
+                      await ref.read(authControllerProvider).logout();
                     }
                   },
                   icon: const Icon(Icons.logout, color: Colors.white),
-                  label: const Text("LOGOUT", style: TextStyle(fontWeight: FontWeight.bold)),
+                  label: const Text("KELUAR APLIKASI", style: TextStyle(fontWeight: FontWeight.bold)),
                   style: ElevatedButton.styleFrom(
                     backgroundColor: Colors.redAccent,
                     foregroundColor: Colors.white,
