@@ -4,7 +4,7 @@ import 'package:haircut_express/screens/booking_screen.dart';
 
 class BarberCard extends StatelessWidget {
   final Barber barber;
-  final bool isBookingScreen; // Flag untuk membedakan tampilan
+  final bool isBookingScreen;
 
   const BarberCard({
     super.key,
@@ -18,7 +18,7 @@ class BarberCard extends StatelessWidget {
       margin: const EdgeInsets.only(bottom: 16),
       elevation: 2,
       shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(12)),
-      color: Colors.white, // Kartu tetap putih agar kontras
+      color: Colors.white,
       child: Padding(
         padding: const EdgeInsets.all(12.0),
         child: Row(
@@ -53,7 +53,8 @@ class BarberCard extends StatelessWidget {
                       const SizedBox(width: 4),
                       Text(
                         barber.rating.toString(),
-                        style: const TextStyle(fontWeight: FontWeight.bold, color: Colors.black87),
+                        style: const TextStyle(
+                            fontWeight: FontWeight.bold, color: Colors.black87),
                       ),
                     ],
                   ),
@@ -66,7 +67,10 @@ class BarberCard extends StatelessWidget {
                   Navigator.push(
                     context,
                     MaterialPageRoute(
-                      builder: (context) => BookingScreen(selectedBarber: barber),
+                      // PERBAIKAN: Hapus discountPercentage
+                      builder: (context) => BookingScreen(
+                        selectedBarber: barber,
+                      ),
                     ),
                   );
                 },

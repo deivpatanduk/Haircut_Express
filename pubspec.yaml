@@ -19,19 +19,23 @@ dependencies:
   # Firebase (Versi Kompatibel Terbaru)
   firebase_core: ^3.6.0
   cloud_firestore: ^5.4.4
-  firebase_messaging: ^15.1.3  # <-- UPDATE KE VERSI INI
+  firebase_messaging: ^15.1.3
+  
+  # TAMBAHAN UNTUK UPLOAD FOTO PROFIL
+  firebase_storage: ^12.3.2  # Menyimpan file foto di Firebase
+  image_picker: ^1.1.2     # Memilih foto dari Galeri/Kamera
   
   # State Management
   flutter_riverpod: ^2.6.1
   
   # Notifications (Local)
-  flutter_local_notifications: ^18.0.1 # <-- UPDATE KE VERSI TERBARU
+  flutter_local_notifications: ^18.0.1
   
   # Utilities
   intl: ^0.19.0
   google_fonts: ^6.2.1
   
-  # Optional (Jika masih dibutuhkan untuk kalender)
+  # Optional
   table_calendar: ^3.1.0
 
 dev_dependencies:
@@ -41,3 +45,7 @@ dev_dependencies:
 
 flutter:
   uses-material-design: true
+
+  # Folder aset (pastikan folder assets/images/ sudah dibuat)
+  assets:
+    - assets/images/
